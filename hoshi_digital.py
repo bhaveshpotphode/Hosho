@@ -7,7 +7,6 @@ def connect_to_database():
         return mysql.connector.connect(
             host="sql12.freesqldatabase.com",
             user="sql12755525",
-            port=3306,
             password="HwqRcpIgdx",
             database="sql12755525"
         )
@@ -23,51 +22,64 @@ def execute_query(query, params=None):
     cursor = connection.cursor(dictionary=True)
     try:
         cursor.execute(query, params)
-        connection.commit()
-        return cursor.fetchall()
+        if query.strip().upper().startswith("SELECT"):
+            return cursor.fetchall()  # Fetch all rows for SELECT queries
+        connection.commit()  # Commit changes for INSERT/UPDATE/DELETE queries
+        return None
     except mysql.connector.Error as err:
         st.error(f"Database error: {err}")
         return None
     finally:
-        cursor.close()
-        connection.close()
+        if cursor:
+            cursor.close()
+        if connection:
+            connection.close()
 
 # Function to display users
 def display_users():
-    users = execute_query("SELECT user_id, name, email, role FROM Users")
-    st.write("### Users")
-    if users:
-        st.table(users)
-    else:
-        st.info("No users found.")
+    try:
+        users = execute_query("SELECT user_id, name, email, role FROM Users")
+        st.write("### Users")
+        if users and len(users) > 0:
+            st.table(users)
+        else:
+            st.info("No users found.")
+    except Exception as e:
+        st.error(f"An error occurred while retrieving users: {e}")
 
 # Function to display customers
 def display_customers():
-    customers = execute_query("SELECT customer_id, name, contact_info, industry FROM Customers")
-    st.write("### Customers")
-    if customers:
-        st.table(customers)
-    else:
-        st.info("No customers found.")
+    try:
+        customers = execute_query("SELECT customer_id, name, contact_info, industry FROM Customers")
+        st.write("### Customers")
+        if customers and len(customers) > 0:
+            st.table(customers)
+        else:
+            st.info("No customers found.")
+    except Exception as e:
+        st.error(f"An error occurred while retrieving customers: {e}")
 
 # Function to display leads
 def display_leads():
-    leads = execute_query("""
-        SELECT 
-            Leads.lead_id, 
-            Customers.name AS customer_name, 
-            Users.name AS assigned_to, 
-            Leads.status, 
-            Leads.created_at
-        FROM Leads
-        LEFT JOIN Customers ON Leads.customer_id = Customers.customer_id
-        LEFT JOIN Users ON Leads.assigned_to = Users.user_id
-    """)
-    st.write("### Leads")
-    if leads:
-        st.table(leads)
-    else:
-        st.info("No leads found.")
+    try:
+        leads = execute_query("""
+            SELECT 
+                Leads.lead_id, 
+                Customers.name AS customer_name, 
+                Users.name AS assigned_to, 
+                Leads.status, 
+                Leads.created_at
+            FROM Leads
+            LEFT JOIN Customers ON Leads.customer_id = Customers.customer_id
+            LEFT JOIN Users ON Leads.assigned_to = Users.user_id
+        """)
+        st.write("### Leads")
+        if leads and len(leads) > 0:
+            st.table(leads)
+        else:
+            st.info("No leads found.")
+    except Exception as e:
+        st.error(f"An error occurred while retrieving leads: {e}")
 
 # Function to add a new user
 def add_user():
@@ -78,26 +90,34 @@ def add_user():
         password = st.text_input("Password", type="password")
         submitted = st.form_submit_button("Add User")
         if submitted:
-            if not name or not email or not password:
-                st.error("All fields are required.")
-                return
-            execute_query(
-                "INSERT INTO Users (name, email, role, password_hash) VALUES (%s, %s, %s, %s)",
-                (name, email, role, password)
-            )
-            st.success("User added successfully!")
+            try:
+                if not name or not email or not password:
+                    st.error("All fields are required.")
+                    return
+                execute_query(
+                    "INSERT INTO Users (name, email, role, password_hash) VALUES (%s, %s, %s, %s)",
+                    (name, email, role, password)
+                )
+                st.success("User added successfully!")
+            except Exception as e:
+                st.error(f"An error occurred while adding a user: {e}")
 
 # Main application
-st.title("Sales Management System")
-# Navigation menu
-menu = ["Users", "Customers", "Leads", "Add User"]
-choice = st.sidebar.selectbox("Menu", menu)
-if choice == "Users":
-    display_users()
-elif choice == "Customers":
-    display_customers()
-elif choice == "Leads":
-    display_leads()
-elif choice == "Add User":
-    add_user()
+def main():
+    st.title("Sales Management System")
 
+    # Navigation menu
+    menu = ["Users", "Customers", "Leads", "Add User"]
+    choice = st.sidebar.selectbox("Menu", menu)
+
+    if choice == "Users":
+        display_users()
+    elif choice == "Customers":
+        display_customers()
+    elif choice == "Leads":
+        display_leads()
+    elif choice == "Add User":
+        add_user()
+
+if __name__ == "__main__":
+    main()
