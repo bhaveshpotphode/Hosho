@@ -7,7 +7,7 @@ def connect_to_database():
         return mysql.connector.connect(
             host="sql12.freesqldatabase.com",
             user="sql12755525",
-            port=3306
+            port=3306,
             password="HwqRcpIgdx",
             database="sql12755525"
         )
