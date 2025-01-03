@@ -1,2 +1,2 @@
 streamlit
-pymysql
+mysql.connector
