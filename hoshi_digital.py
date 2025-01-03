@@ -10,19 +10,14 @@ Original file is located at
 import streamlit as st
 import pymysql
 
-# Database connection settings
-DB_HOST = "localhost"
-DB_USER = "root"
-DB_PASSWORD = "Bhavesh@90"
-DB_NAME = "hosho_digital_project"
 
 # Connect to the database
 def connect_to_database():
     return pymysql.connect(
-        host=DB_HOST,
-        user=DB_USER,
-        password=DB_PASSWORD,
-        database=DB_NAME,
+        host=sql12.freesqldatabase.com,
+        user=sql12755525,
+        password=HwqRcpIgdx,
+        database=sql12755525,
         cursorclass=pymysql.cursors.DictCursor
     )
 
