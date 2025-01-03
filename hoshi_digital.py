@@ -1,6 +1,5 @@
 import streamlit as st
 import mysql.connector
-import hashlib
 
 # Connect to the database
 def connect_to_database():
@@ -8,6 +7,7 @@ def connect_to_database():
         return mysql.connector.connect(
             host="sql12.freesqldatabase.com",
             user="sql12755525",
+            port=3306
             password="HwqRcpIgdx",
             database="sql12755525"
         )
@@ -31,10 +31,6 @@ def execute_query(query, params=None):
     finally:
         cursor.close()
         connection.close()
-
-# Hash a password using hashlib
-def hash_password(password):
-    return hashlib.sha256(password.encode()).hexdigest()
 
 # Function to display users
 def display_users():
@@ -83,32 +79,25 @@ def add_user():
         submitted = st.form_submit_button("Add User")
         if submitted:
             if not name or not email or not password:
-                st.error("All fields are required!")
+                st.error("All fields are required.")
                 return
-            hashed_password = hash_password(password)
-            result = execute_query(
+            execute_query(
                 "INSERT INTO Users (name, email, role, password_hash) VALUES (%s, %s, %s, %s)",
-                (name, email, role, hashed_password)
+                (name, email, role, password)
             )
-            if result is not None:
-                st.success("User added successfully!")
+            st.success("User added successfully!")
 
 # Main application
-def main():
-    st.title("Sales Management System")
+st.title("Sales Management System")
+# Navigation menu
+menu = ["Users", "Customers", "Leads", "Add User"]
+choice = st.sidebar.selectbox("Menu", menu)
+if choice == "Users":
+    display_users()
+elif choice == "Customers":
+    display_customers()
+elif choice == "Leads":
+    display_leads()
+elif choice == "Add User":
+    add_user()
 
-    # Navigation menu
-    menu = ["Users", "Customers", "Leads", "Add User"]
-    choice = st.sidebar.selectbox("Menu", menu)
-
-    if choice == "Users":
-        display_users()
-    elif choice == "Customers":
-        display_customers()
-    elif choice == "Leads":
-        display_leads()
-    elif choice == "Add User":
-        add_user()
-
-if __name__ == "__main__":
-    main()
